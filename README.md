@@ -1,4 +1,4 @@
-# Htaccess Generator Pro
+# .htaccess Generator Pro
 
 Generate correct, ready-to-use Apache `.htaccess` snippets — HTTPS redirects, caching, compression and security headers — from a checklist, entirely offline.
 
@@ -6,7 +6,7 @@ Generate correct, ready-to-use Apache `.htaccess` snippets — HTTPS redirects, 
 
 ## Overview
 
-Htaccess Generator Pro is part of the **Web Utility Suite**. It runs entirely in the browser with no build step, no frameworks, and no network calls — open `index.html` from disk and it works. Each rule is a real Apache directive block (mod_rewrite, mod_deflate, mod_expires, mod_headers) written the way you'd hand-write it yourself, not fabricated syntax. Toggle rules on the left, watch the combined, syntax-highlighted `.htaccess` build live on the right.
+.htaccess Generator Pro is part of the **Web Utility Suite**. It runs entirely in the browser with no build step, no frameworks, and no network calls — open `index.html` from disk and it works. Each rule is a real Apache directive block (mod_rewrite, mod_deflate, mod_expires, mod_headers) written the way you'd hand-write it yourself, not fabricated syntax. Toggle rules on the left, watch the combined, syntax-highlighted `.htaccess` build live on the right.
 
 ## Features
 
@@ -64,4 +64,4 @@ Then simply open `index.html` in any modern browser (double-click it, or `file:/
 
 ## License
 
-MIT Licensed. Part of the [Web Utility Suite](https://github.com/kasapdev).
+MIT Licensed. Part of the [Web Utility Suite](https://github.com/kasapdev/web-utility-suite).
