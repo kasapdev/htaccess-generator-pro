@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08090d">
+  <meta name="description" content="Generate correct, ready-to-use Apache .htaccess rules — HTTPS redirect, www handling, caching, gzip, security headers, IP deny — from a checklist. Offline, zero dependencies.">
+  <title>.htaccess Generator Pro — Web Utility Suite</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar container">
+    <a class="brand" href="https://github.com/kasapdev/web-utility-suite" aria-label="Back to Web Utility Suite">
+      <span class="logo" aria-hidden="true">
+        <!-- server / rules icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="10" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </span>
+      <span class="col" style="gap:0">
+        <span>.htaccess Generator</span>
+        <span class="sub">Web Utility Suite</span>
+      </span>
+    </a>
+    <span class="spacer"></span>
+
+    <span id="statusBadge" class="badge" role="status" aria-live="polite" title="Enabled rules">
+      <span class="status-dot" aria-hidden="true"></span><span id="statusText">0 rules enabled</span>
+    </span>
+
+    <button class="btn btn--icon" data-shortcut-help title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M7 16h10"/>
+      </svg>
+    </button>
+    <button class="btn btn--icon" data-theme-toggle title="Toggle theme" aria-label="Toggle theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="container">
+    <section class="panel toolbar-panel fade-in" aria-label="Output actions">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button id="btnCopy" class="btn btn--primary" title="Copy generated .htaccess (Ctrl/Cmd+Shift+C)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+          <button id="btnDownload" class="btn" title="Download .htaccess (Ctrl/Cmd+S)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download .htaccess
+          </button>
+          <button id="btnReset" class="btn btn--ghost btn--sm" title="Reset all rules to defaults">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+            Reset
+          </button>
+        </div>
+        <span class="spacer hide-sm"></span>
+        <span class="muted" style="font-size:13px">Every enabled rule emits a real, syntactically correct Apache directive block.</span>
+      </div>
+    </section>
+
+    <section class="builder-grid rise">
+      <!-- Rules column -->
+      <div class="col rules-col">
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleHttps" class="rule-toggle"><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Force HTTPS redirect</span>
+          </label>
+          <p class="muted rule-desc">Redirects all plain HTTP requests to HTTPS via mod_rewrite.</p>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleWww" class="rule-toggle"><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">www ⇄ non-www redirect</span>
+          </label>
+          <p class="muted rule-desc">Canonicalize one host form to avoid duplicate-content issues.</p>
+          <div class="rule-fields" id="wwwFields" hidden>
+            <div class="field">
+              <label for="wwwDirection">Direction</label>
+              <select id="wwwDirection">
+                <option value="add-www">Force www (example.com → www.example.com)</option>
+                <option value="strip-www">Force non-www (www.example.com → example.com)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleErrors" class="rule-toggle"><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Custom error pages</span>
+          </label>
+          <p class="muted rule-desc">Serve your own pages for common error codes via ErrorDocument. Leave a path blank to skip it.</p>
+          <div class="rule-fields grid-2" id="errorFields" hidden>
+            <div class="field"><label for="err404">404 Not Found path</label><input type="text" id="err404" placeholder="/errors/404.html" spellcheck="false" autocomplete="off"></div>
+            <div class="field"><label for="err500">500 Internal Server Error path</label><input type="text" id="err500" placeholder="/errors/500.html" spellcheck="false" autocomplete="off"></div>
+            <div class="field"><label for="err403">403 Forbidden path</label><input type="text" id="err403" placeholder="/errors/403.html" spellcheck="false" autocomplete="off"></div>
+            <div class="field"><label for="err401">401 Unauthorized path</label><input type="text" id="err401" placeholder="/errors/401.html" spellcheck="false" autocomplete="off"></div>
+          </div>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleIndexes" class="rule-toggle" checked><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Disable directory listing</span>
+          </label>
+          <p class="muted rule-desc">Prevents Apache from listing folder contents when there's no index file.</p>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleHeaders" class="rule-toggle" checked><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Security headers</span>
+          </label>
+          <p class="muted rule-desc">Common hardening headers via mod_headers. Untick any you don't need.</p>
+          <div class="rule-fields" id="headersFields" hidden>
+            <label class="check header-check"><input type="checkbox" id="hdrFrame" checked><span class="secondary">X-Frame-Options <code class="mono">SAMEORIGIN</code></span></label>
+            <label class="check header-check"><input type="checkbox" id="hdrContentType" checked><span class="secondary">X-Content-Type-Options <code class="mono">nosniff</code></span></label>
+            <label class="check header-check"><input type="checkbox" id="hdrXss" checked><span class="secondary">X-XSS-Protection <code class="mono">1; mode=block</code></span></label>
+            <label class="check header-check"><input type="checkbox" id="hdrReferrer" checked><span class="secondary">Referrer-Policy <code class="mono">strict-origin-when-cross-origin</code></span></label>
+            <label class="check header-check"><input type="checkbox" id="hdrCsp"><span class="secondary">Content-Security-Policy</span></label>
+            <div class="field csp-field">
+              <label for="cspValue" class="sr-only">Content-Security-Policy value</label>
+              <input type="text" id="cspValue" value="default-src 'self'" spellcheck="false" autocomplete="off" aria-label="Content-Security-Policy value">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleCompress" class="rule-toggle" checked><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Gzip / deflate compression</span>
+          </label>
+          <p class="muted rule-desc">Compresses text-based responses (HTML, CSS, JS, JSON, SVG, fonts) with mod_deflate.</p>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleCache" class="rule-toggle" checked><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Browser caching headers</span>
+          </label>
+          <p class="muted rule-desc">Sets Expires lifetimes by file type via mod_expires, with a duration preset per category.</p>
+          <div class="rule-fields grid-2" id="cacheFields" hidden>
+            <div class="field">
+              <label for="cacheImages">Images</label>
+              <select id="cacheImages">
+                <option value="1 week">1 week</option>
+                <option value="1 month">1 month</option>
+                <option value="6 months">6 months</option>
+                <option value="1 year" selected>1 year</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cacheAssets">CSS &amp; JavaScript</label>
+              <select id="cacheAssets">
+                <option value="1 day">1 day</option>
+                <option value="1 week">1 week</option>
+                <option value="1 month" selected>1 month</option>
+                <option value="1 year">1 year</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cacheFonts">Fonts</label>
+              <select id="cacheFonts">
+                <option value="1 month">1 month</option>
+                <option value="6 months">6 months</option>
+                <option value="1 year" selected>1 year</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="cacheHtml">HTML</label>
+              <select id="cacheHtml">
+                <option value="0 seconds" selected>No cache (0 seconds)</option>
+                <option value="1 hour">1 hour</option>
+                <option value="1 day">1 day</option>
+                <option value="1 week">1 week</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel rule-card">
+          <label class="check rule-head">
+            <span class="switch"><input type="checkbox" id="ruleDeny" class="rule-toggle"><span class="track"></span><span class="thumb"></span></span>
+            <span class="rule-title">Deny access by IP</span>
+          </label>
+          <p class="muted rule-desc">Blocks specific visitors using modern <code class="mono">Require</code> syntax (Apache 2.4+). One IP or CIDR range per line.</p>
+          <div class="rule-fields" id="denyFields" hidden>
+            <div class="field">
+              <label for="denyVersion">Apache syntax</label>
+              <select id="denyVersion">
+                <option value="2.4" selected>Apache 2.4+ (mod_authz_core)</option>
+                <option value="2.2">Apache 2.2 (mod_access)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="denyIps">Blocked IPs / CIDR ranges</label>
+              <textarea id="denyIps" class="mono" rows="3" spellcheck="false" placeholder="203.0.113.5&#10;198.51.100.0/24"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Output column -->
+      <div class="panel output-col">
+        <div class="pane-head">
+          <h2 class="pane-title">.htaccess preview</h2>
+          <span id="outputStats" class="muted pane-meta mono">0 lines</span>
+        </div>
+        <div class="output-scroll">
+          <pre id="output" class="output-code mono" aria-live="polite" tabindex="0"><code id="outputCode"></code></pre>
+          <div id="emptyState" class="empty output-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p>Turn on a rule to generate your .htaccess.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer container">
+    Part of the <a href="https://github.com/kasapdev/web-utility-suite">Web Utility Suite</a> · MIT Licensed
+  </footer>
+
+  <!-- Shortcuts help modal -->
+  <div id="helpBackdrop" class="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="row between center" style="margin-bottom:var(--space-4)">
+        <h3 id="helpTitle" style="margin:0">Keyboard shortcuts</h3>
+        <button id="helpClose" class="btn btn--icon btn--ghost" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <table class="shortcut-table">
+        <tbody id="shortcutRows"></tbody>
+      </table>
+      <p class="muted" style="margin:var(--space-4) 0 0;font-size:13px">Tip: <kbd>mod</kbd> means <kbd>Ctrl</kbd> on Windows/Linux and <kbd>⌘</kbd> on macOS.</p>
+    </div>
+  </div>
+
+  <script src="assets/js/core.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
