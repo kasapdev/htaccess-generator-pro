@@ -14,9 +14,9 @@ Htaccess Generator Pro is part of the **Web Utility Suite**. It runs entirely in
 - **www / non-www redirect** — pick a direction (force `www.` or strip it) and get the matching `RewriteCond`/`RewriteRule` pair.
 - **Custom error pages** — `ErrorDocument` directives for 401, 403, 404 and 500, each with an editable path.
 - **Gzip / Deflate compression** — a `mod_deflate` block covering HTML, CSS, JS, JSON, XML, SVG and web fonts.
-- **Browser caching headers** — a `mod_expires` block with independently configurable lifetimes for images, CSS/JS and web fonts.
+- **Browser caching headers** — a `mod_expires` block with independently configurable lifetimes for images, CSS/JS, web fonts and HTML.
 - **Disable directory listing** — `Options -Indexes`.
-- **Basic security headers** — `mod_headers` block setting `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection` and `Referrer-Policy`; untick any individual header you don't need.
+- **Basic security headers** — `mod_headers` block setting `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Referrer-Policy` and an optional custom `Content-Security-Policy`; untick any individual header you don't need.
 - **Deny by IP** — pick Apache 2.4 (`<RequireAll>`/`Require not ip`) or Apache 2.2 (`Order`/`Deny from`) syntax, with the other version's equivalent included as a comment, for one or more IPs/CIDR ranges (one per line).
 - **Live combined preview** with syntax highlighting, line count, copy and **Download `.htaccess`**.
 - **Auto-persist** — your rule selections and field values are saved to `localStorage` and restored on return.

@@ -68,19 +68,9 @@
     });
   }
 
-  function humanDuration(seconds) {
-    seconds = Number(seconds);
-    if (seconds === 0) return '0 seconds';
-    var units = [
-      ['year', 31536000], ['month', 2592000], ['week', 604800],
-      ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]
-    ];
-    for (var i = 0; i < units.length; i++) {
-      var n = Math.round(seconds / units[i][1]);
-      if (n >= 1) return n + ' ' + units[i][0] + (n === 1 ? '' : 's');
-    }
-    return seconds + ' seconds';
-  }
+  /* Cache duration <select> values are already human-readable Apache
+     "access plus <n> <unit>" fragments (e.g. "1 year", "0 seconds") —
+     used as-is, no conversion needed. */
 
   /* ===================== Rule builders ===================== */
 
@@ -128,25 +118,26 @@
     ].join('\n');
   }
 
-  function ruleCache(images, assets, fonts) {
+  function ruleCache(images, assets, fonts, html) {
     var lines = [
       '# ---- Browser caching headers ----',
       '<IfModule mod_expires.c>',
       '  ExpiresActive On',
-      '  ExpiresByType image/jpeg "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType image/png "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType image/gif "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType image/webp "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType image/svg+xml "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType image/x-icon "access plus ' + humanDuration(images) + '"',
-      '  ExpiresByType text/css "access plus ' + humanDuration(assets) + '"',
-      '  ExpiresByType application/javascript "access plus ' + humanDuration(assets) + '"',
-      '  ExpiresByType text/javascript "access plus ' + humanDuration(assets) + '"',
-      '  ExpiresByType font/woff "access plus ' + humanDuration(fonts) + '"',
-      '  ExpiresByType font/woff2 "access plus ' + humanDuration(fonts) + '"',
-      '  ExpiresByType application/font-woff2 "access plus ' + humanDuration(fonts) + '"',
-      '  ExpiresByType application/vnd.ms-fontobject "access plus ' + humanDuration(fonts) + '"',
-      '  ExpiresByType font/ttf "access plus ' + humanDuration(fonts) + '"',
+      '  ExpiresByType image/jpeg "access plus ' + images + '"',
+      '  ExpiresByType image/png "access plus ' + images + '"',
+      '  ExpiresByType image/gif "access plus ' + images + '"',
+      '  ExpiresByType image/webp "access plus ' + images + '"',
+      '  ExpiresByType image/svg+xml "access plus ' + images + '"',
+      '  ExpiresByType image/x-icon "access plus ' + images + '"',
+      '  ExpiresByType text/css "access plus ' + assets + '"',
+      '  ExpiresByType application/javascript "access plus ' + assets + '"',
+      '  ExpiresByType text/javascript "access plus ' + assets + '"',
+      '  ExpiresByType font/woff "access plus ' + fonts + '"',
+      '  ExpiresByType font/woff2 "access plus ' + fonts + '"',
+      '  ExpiresByType application/font-woff2 "access plus ' + fonts + '"',
+      '  ExpiresByType application/vnd.ms-fontobject "access plus ' + fonts + '"',
+      '  ExpiresByType font/ttf "access plus ' + fonts + '"',
+      '  ExpiresByType text/html "access plus ' + html + '"',
       '</IfModule>'
     ];
     return lines.join('\n');
@@ -165,6 +156,7 @@
     if (opts.contentType) body.push('  Header always set X-Content-Type-Options "nosniff"');
     if (opts.xss) body.push('  Header always set X-XSS-Protection "1; mode=block"');
     if (opts.referrer) body.push('  Header always set Referrer-Policy "strict-origin-when-cross-origin"');
+    if (opts.csp && opts.cspValue) body.push('  Header always set Content-Security-Policy "' + opts.cspValue.replace(/"/g, '\\"') + '"');
     if (!body.length) return '';
     return [
       '# ---- Basic security headers (requires mod_headers) ----',
@@ -225,14 +217,16 @@
       if (errBlock) blocks.push(errBlock);
     }
     if (els.compress.checked) blocks.push(ruleCompress());
-    if (els.cache.checked) blocks.push(ruleCache(els.cacheImages.value, els.cacheAssets.value, els.cacheFonts.value));
+    if (els.cache.checked) blocks.push(ruleCache(els.cacheImages.value, els.cacheAssets.value, els.cacheFonts.value, els.cacheHtml.value));
     if (els.indexes.checked) blocks.push(ruleIndexes());
     if (els.headers.checked) {
       var hdrBlock = ruleHeaders({
         frame: els.hdrFrame.checked,
         contentType: els.hdrContentType.checked,
         xss: els.hdrXss.checked,
-        referrer: els.hdrReferrer.checked
+        referrer: els.hdrReferrer.checked,
+        csp: els.hdrCsp.checked,
+        cspValue: els.cspValue.value.trim()
       });
       if (hdrBlock) blocks.push(hdrBlock);
     }
@@ -285,9 +279,12 @@
     els.hdrContentType.checked = true;
     els.hdrXss.checked = true;
     els.hdrReferrer.checked = true;
+    els.hdrCsp.checked = false;
+    els.cspValue.value = "default-src 'self'";
     els.cacheImages.value = '1 year';
     els.cacheAssets.value = '1 month';
     els.cacheFonts.value = '1 year';
+    els.cacheHtml.value = '0 seconds';
     els.denyVersion.value = '2.4';
     els.denyIps.value = '';
     els.wwwDirection.value = 'add-www';
@@ -306,11 +303,12 @@
       www: els.www.checked, wwwDirection: els.wwwDirection.value,
       errors: els.errors.checked, err401: els.err401.value, err403: els.err403.value, err404: els.err404.value, err500: els.err500.value,
       compress: els.compress.checked,
-      cache: els.cache.checked, cacheImages: els.cacheImages.value, cacheAssets: els.cacheAssets.value, cacheFonts: els.cacheFonts.value,
+      cache: els.cache.checked, cacheImages: els.cacheImages.value, cacheAssets: els.cacheAssets.value, cacheFonts: els.cacheFonts.value, cacheHtml: els.cacheHtml.value,
       indexes: els.indexes.checked,
       headers: els.headers.checked,
       hdrFrame: els.hdrFrame.checked, hdrContentType: els.hdrContentType.checked,
       hdrXss: els.hdrXss.checked, hdrReferrer: els.hdrReferrer.checked,
+      hdrCsp: els.hdrCsp.checked, cspValue: els.cspValue.value,
       deny: els.deny.checked, denyVersion: els.denyVersion.value, denyIps: els.denyIps.value
     });
   }
@@ -331,12 +329,15 @@
     if (s.cacheImages) els.cacheImages.value = s.cacheImages;
     if (s.cacheAssets) els.cacheAssets.value = s.cacheAssets;
     if (s.cacheFonts) els.cacheFonts.value = s.cacheFonts;
+    if (s.cacheHtml) els.cacheHtml.value = s.cacheHtml;
     els.indexes.checked = s.indexes !== false;
     els.headers.checked = s.headers !== false;
     els.hdrFrame.checked = s.hdrFrame !== false;
     els.hdrContentType.checked = s.hdrContentType !== false;
     els.hdrXss.checked = s.hdrXss !== false;
     els.hdrReferrer.checked = s.hdrReferrer !== false;
+    els.hdrCsp.checked = !!s.hdrCsp;
+    if (typeof s.cspValue === 'string' && s.cspValue) els.cspValue.value = s.cspValue;
     els.deny.checked = !!s.deny;
     if (s.denyVersion) els.denyVersion.value = s.denyVersion;
     if (typeof s.denyIps === 'string') els.denyIps.value = s.denyIps;
@@ -384,11 +385,12 @@
   document.getElementById('btnReset').addEventListener('click', resetAll);
 
   [els.https, els.compress, els.cache, els.indexes, els.headers,
-   els.hdrFrame, els.hdrContentType, els.hdrXss, els.hdrReferrer].forEach(function (el) {
+   els.hdrFrame, els.hdrContentType, els.hdrXss, els.hdrReferrer, els.hdrCsp].forEach(function (el) {
     el.addEventListener('change', render);
   });
   [els.wwwDirection, els.err401, els.err403, els.err404, els.err500,
-   els.cacheImages, els.cacheAssets, els.cacheFonts, els.denyVersion, els.denyIps].forEach(function (el) {
+   els.cacheImages, els.cacheAssets, els.cacheFonts, els.cacheHtml,
+   els.cspValue, els.denyVersion, els.denyIps].forEach(function (el) {
     el.addEventListener('input', render);
     el.addEventListener('change', render);
   });
