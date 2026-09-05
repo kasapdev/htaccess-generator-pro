@@ -396,7 +396,12 @@
   });
 
   WUS.registerShortcut('mod+c', function () {
-    if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+    var el = document.activeElement;
+    var tag = el && el.tagName;
+    var isTyping = tag === 'TEXTAREA' || tag === 'INPUT' || (el && el.isContentEditable);
+    // Don't hijack Ctrl/Cmd+C while the user is focused in a field —
+    // let the browser's normal copy behavior win there.
+    if (isTyping) return;
     copyOutput();
   }, 'Copy .htaccess');
   WUS.registerShortcut('mod+s', function () { downloadOutput(); }, 'Download .htaccess');
