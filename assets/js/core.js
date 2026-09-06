@@ -170,7 +170,15 @@
       /* Always allow combos that use a modifier; bare keys ignored while typing */
       var usesMod = /ctrl|cmd|mod|alt/.test(s.combo.toLowerCase());
       if (typing && !usesMod) continue;
-      if (comboMatches(e, s.combo)) { e.preventDefault(); s.handler(e); return; }
+      if (comboMatches(e, s.combo)) {
+        /* A handler may return false to decline handling this keypress
+           (e.g. because focus is in a field and the browser's native
+           behavior — like Ctrl/Cmd+C copying selected text — should win).
+           Only suppress the default action when the handler actually acts. */
+        var handled = s.handler(e);
+        if (handled !== false) e.preventDefault();
+        return;
+      }
     }
   });
 

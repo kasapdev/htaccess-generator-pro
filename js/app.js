@@ -400,8 +400,9 @@
     var tag = el && el.tagName;
     var isTyping = tag === 'TEXTAREA' || tag === 'INPUT' || (el && el.isContentEditable);
     // Don't hijack Ctrl/Cmd+C while the user is focused in a field —
-    // let the browser's normal copy behavior win there.
-    if (isTyping) return;
+    // return false so the dispatcher skips preventDefault() and the
+    // browser's normal copy-selected-text behavior still runs there.
+    if (isTyping) return false;
     copyOutput();
   }, 'Copy .htaccess');
   WUS.registerShortcut('mod+s', function () { downloadOutput(); }, 'Download .htaccess');
